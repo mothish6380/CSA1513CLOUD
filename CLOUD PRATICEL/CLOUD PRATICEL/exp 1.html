@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkySaaS - Cloud Flight Reservation System</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .category-toggle {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .category-btn.active {
+            background: #dbeafe;
+            color: var(--primary);
+        }
+
+        .trip-type {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .fare-type {
+            margin-bottom: 24px;
+        }
+
+        .fare-type label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .fare-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .fare-chip {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            background: #f1f5f9;
+        }
+
+        .fare-chip.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Results & Available Flights Section */
+        .results-section {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text);
+        }
+
+        .flight-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .flight-info h4 {
+            font-size: 1.1rem;
+            color: var(--primary-dark);
+        }
+
+        .flight-info p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .flight-times {
+            text-align: center;
+        }
+
+        .flight-times div {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .flight-times span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .flight-price {
+            text-align: right;
+        }
+
+        .price-tag {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--success);
+            margin-bottom: 6px;
+        }
+
+        .book-btn {
+            padding: 8px 16px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .book-btn:hover {
+            background: #15803d;
+        }
+
+        .payload-box {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+        }
+
+        .payload-box pre {
+            white-space: pre-wrap;
+            font-size: 0.85rem;
+            color: #166534;
+        }
+
+        .no-flights {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-muted);
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>SkySaaS Flight Reservation System</h1>
+        <p>Demonstrating Multi-Tenant Cloud SaaS & Real-Time Flight Search</p>
+    </header>
+
+    <!-- Booking Form Card -->
+    <div class="card">
+        <div class="category-toggle">
+            <button class="category-btn active" id="domestic-btn" onclick="setCategory('Domestic')">Domestic Flights</button>
+            <button class="category-btn" id="intl-btn" onclick="setCategory('International')">International Flights</button>
+        </div>
+
+        <form id="booking-form" onsubmit="handleSearch(event)">
+            <div class="trip-type">
+                <label class="radio-label">
+                    <input type="radio" name="tripType" value="One Way" checked onclick="toggleReturnDate(false)">
+                    One Way
+                </label>
+                <label class="radio-label">
+                    <input type="radio" name="tripType" value="Round Trip" onclick="toggleReturnDate(true)">
+                    Round Trip
+                </label>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="from">From</label>
+                    <input type="text" id="from" placeholder="e.g., JFK or NYC" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="to">To</label>
+                    <input type="text" id="to" placeholder="e.g., LHR or LAX" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="departure">Departure</label>
+                    <input type="date" id="departure" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="return">Return</label>
+                    <input type="date" id="return" disabled>
+                </div>
+
+                <div class="form-group">
+                    <label for="travelers">Travelers</label>
+                    <select id="travelers">
+                        <option value="1 Adult">1 Adult</option>
+                        <option value="2 Adults">2 Adults</option>
+                        <option value="2 Adults, 1 Child">2 Adults, 1 Child</option>
+                        <option value="Family Group">Family Group (4+)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="class">Class</label>
+                    <select id="class">
+                        <option value="Economy">Economy</option>
+                        <option value="Premium Economy">Premium Economy</option>
+                        <option value="Business">Business</option>
+                        <option value="First Class">First Class</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="fare-type">
+                <label>Fare Type</label>
+                <div class="fare-options">
+                    <div class="fare-chip selected" onclick="selectFare(this)">Regular Fare</div>
+                    <div class="fare-chip" onclick="selectFare(this)">Student Fare</div>
+                    <div class="fare-chip" onclick="selectFare(this)">Senior Citizen</div>
+                    <div class="fare-chip" onclick="selectFare(this)">Armed Forces</div>
+                    <div class="fare-chip" onclick="selectFare(this)">Doctor & Nurses</div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Search Available Flights</button>
+        </form>
+    </div>
+
+    <!-- Available Flights Results Section -->
+    <div id="results-section" class="results-section">
+        <h3 class="section-title">Available Flights</h3>
+        <div id="flights-container"></div>
+
+        <div class="payload-box">
+            <h3>Cloud DB Payload (Generated SaaS JSON):</h3>
+            <pre id="payload-output"></pre>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mock Database of Available Flights
+    const mockFlights = [
+        { id: "FL-101", category: "Domestic", airline: "SkyAir Express", number: "SA-302", from: "JFK", to: "LAX", deptTime: "08:00 AM", arrTime: "11:30 AM", duration: "5h 30m", price: 250 },
+        { id: "FL-102", category: "Domestic", airline: "CloudJet", number: "CJ-884", from: "JFK", to: "LAX", deptTime: "02:15 PM", arrTime: "05:45 PM", duration: "5h 30m", price: 210 },
+        { id: "FL-201", category: "International", airline: "Global Airways", number: "GA-009", from: "JFK", to: "LHR", deptTime: "06:30 PM", arrTime: "06:30 AM (+1)", duration: "7h 00m", price: 680 },
+        { id: "FL-202", category: "International", airline: "TransWorld Air", number: "TW-441", from: "JFK", to: "LHR", deptTime: "10:00 PM", arrTime: "10:00 AM (+1)", duration: "7h 00m", price: 620 },
+        { id: "FL-301", category: "Domestic", airline: "AeroConnect", number: "AC-112", from: "DEL", to: "BOM", deptTime: "07:00 AM", arrTime: "09:10 AM", duration: "2h 10m", price: 85 },
+        { id: "FL-302", category: "Domestic", airline: "SkyAir Express", number: "SA-501", from: "DEL", to: "BOM", deptTime: "05:30 PM", arrTime: "07:40 PM", duration: "2h 10m", price: 95 }
+    ];
+
+    let selectedCategory = 'Domestic';
+    let selectedFare = 'Regular Fare';
+
+    function setCategory(category) {
+        selectedCategory = category;
+        document.getElementById('domestic-btn').classList.toggle('active', category === 'Domestic');
+        document.getElementById('intl-btn').classList.toggle('active', category === 'International');
+    }
+
+    function toggleReturnDate(enable) {
+        const returnInput = document.getElementById('return');
+        returnInput.disabled = !enable;
+        returnInput.required = enable;
+        if (!enable) returnInput.value = '';
+    }
+
+    function selectFare(element) {
+        document.querySelectorAll('.fare-chip').forEach(chip => chip.classList.remove('selected'));
+        element.classList.add('selected');
+        selectedFare = element.innerText;
+    }
+
+    function handleSearch(event) {
+        event.preventDefault();
+
+        const fromVal = document.getElementById('from').value.trim().toUpperCase();
+        const toVal = document.getElementById('to').value.trim().toUpperCase();
+        const tripTypeVal = document.querySelector('input[name="tripType"]:checked').value;
+        const departureVal = document.getElementById('departure').value;
+        const returnVal = document.getElementById('return').value || 'N/A';
+        const travelersVal = document.getElementById('travelers').value;
+        const classVal = document.getElementById('class').value;
+
+        // Filter flights based on User Search Criteria
+        let matchedFlights = mockFlights.filter(flight => 
+            flight.category === selectedCategory &&
+            (flight.from.includes(fromVal) || fromVal === '') &&
+            (flight.to.includes(toVal) || toVal === '')
+        );
+
+        // Display Results Section
+        const resultsSection = document.getElementById('results-section');
+        const flightsContainer = document.getElementById('flights-container');
+        resultsSection.style.display = 'block';
+        flightsContainer.innerHTML = '';
+
+        if (matchedFlights.length > 0) {
+            matchedFlights.forEach(flight => {
+                // Apply mock discount if special fare selected
+                let finalPrice = flight.price;
+                if (selectedFare !== 'Regular Fare') finalPrice = Math.round(flight.price * 0.85);
+
+                const flightCard = document.createElement('div');
+                flightCard.className = 'flight-card';
+                flightCard.innerHTML = `
+                    <div class="flight-info">
+                        <h4>${flight.airline} (${flight.number})</h4>
+                        <p>${selectedCategory} • ${classVal} Class</p>
+                    </div>
+                    <div class="flight-times">
+                        <div>${flight.deptTime} → ${flight.arrTime}</div>
+                        <span>${flight.from} to ${flight.to} (${flight.duration})</span>
+                    </div>
+                    <div class="flight-price">
+                        <div class="price-tag">$${finalPrice}</div>
+                        <button class="book-btn" onclick="bookFlight('${flight.id}', '${flight.airline}', ${finalPrice})">Book Flight</button>
+                    </div>
+                `;
+                flightsContainer.appendChild(flightCard);
+            });
+        } else {
+            flightsContainer.innerHTML = `
+                <div class="no-flights">
+                    No direct flights found matching <strong>${fromVal || 'Any'}</strong> to <strong>${toVal || 'Any'}</strong> under <strong>${selectedCategory}</strong> flights. 
+                    <br><small>Try searching JFK to LAX (Domestic) or JFK to LHR (International).</small>
+                </div>
+            `;
+        }
+
+        // Construct Cloud Database Payload
+        const formData = {
+            flightCategory: selectedCategory,
+            tripType: tripTypeVal,
+            from: fromVal,
+            to: toVal,
+            departureDate: departureVal,
+            returnDate: returnVal,
+            travelers: travelersVal,
+            cabinClass: classVal,
+            fareType: selectedFare,
+            availableFlightsFound: matchedFlights.length,
+            timestamp: new Date().toISOString()
+        };
+
+        document.getElementById('payload-output').innerText = JSON.stringify(formData, null, 2);
+    }
+
+    function bookFlight(flightId, airline, price) {
+        alert(`Booking Confirmed!\nFlight ID: ${flightId}\nAirline: ${airline}\nTotal Price: $${price}`);
+    }
+</script>
+
+</body>
+</html>

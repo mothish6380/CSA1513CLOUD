@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Online Supermarket</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f4ee;--card:#fff;--ink:#2a2a1f;--mute:#6c6c5c;--line:#e1ded0;--brand:#2f6b2a;--on:#fff;--bad:#a63d2f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171a14;--card:#21261c;--ink:#ecefe4;--mute:#a7ad99;--line:#394032;--brand:#8fd37f;--on:#0e2008;--bad:#e8806f}}
+:root[data-theme="dark"]{--bg:#171a14;--card:#21261c;--ink:#ecefe4;--mute:#a7ad99;--line:#394032;--brand:#8fd37f;--on:#0e2008;--bad:#e8806f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,button,input,select,th,label{font-family:"Trebuchet MS",Verdana,sans-serif}
+header{background:var(--brand);color:var(--on);padding:24px 16px}
+header h1{margin:0;font-size:1.7rem}header p{margin:4px 0 0;opacity:.9}
+main{max-width:1000px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.15rem}
+fieldset{border:1px solid var(--line);border-radius:6px;margin:0 0 12px;padding:10px}
+legend{color:var(--mute);font-size:.85rem;padding:0 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label{font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+input,select{padding:8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-size:.95rem}
+button{padding:8px 14px;border:0;border-radius:5px;background:var(--brand);color:var(--on);cursor:pointer;font-size:.9rem}
+button.sm{padding:4px 8px;font-size:.8rem}
+button.alt{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+form .row{display:flex;gap:10px;align-items:end;flex-wrap:wrap}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600}
+.bill{max-width:320px;margin:10px 0 0 auto;font-family:"Trebuchet MS",Verdana,sans-serif}
+.bill div{display:flex;justify-content:space-between;padding:3px 0}
+.bill .tot{font-weight:bold;border-top:2px solid var(--line);margin-top:4px;padding-top:6px}
+.low{color:var(--bad);font-weight:bold}
+.hint{color:var(--mute);font-size:.85rem;margin:6px 0 0}
+.empty{color:var(--mute);padding:10px 0}
+#msg{color:var(--brand);font-weight:bold;margin:8px 0 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Online Supermarket</h1>
+  <p>Classify and stock items, take a customer order, and generate the bill.</p>
+</header>
+<main>
+  <section>
+    <h2>Item classification form</h2>
+    <form id="itemForm">
+      <div class="grid">
+        <label>Item name<input id="iname" required></label>
+        <label>Category
+          <select id="icat" required>
+            <option value="">Select a category</option>
+            <option>Groceries</option><option>Fruits and Vegetables</option><option>Dairy and Eggs</option>
+            <option>Beverages</option><option>Snacks</option><option>Household</option><option>Personal Care</option>
+          </select>
+        </label>
+        <label>Unit (e.g. kg, litre, pack)<input id="iunit" required></label>
+        <label>Price per unit (₹)<input id="iprice" type="number" min="0" step="0.01" required></label>
+        <label>Stock quantity<input id="istock" type="number" min="0" required></label>
+      </div>
+      <p><button type="submit">Add item</button></p>
+    </form>
+
+    <div class="tools">
+      <select id="catFlt" aria-label="Filter by category"></select>
+    </div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Category</th><th>Unit</th><th>Price</th><th>Stock</th><th></th></tr></thead>
+        <tbody id="items"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Customer order</h2>
+    <fieldset><legend>Customer details</legend>
+      <div class="grid">
+        <label>Customer name<input id="cname"></label>
+        <label>Phone<input id="cphone" type="tel" pattern="[0-9+ ]{10,14}" title="Enter a 10 to 14 digit phone number"></label>
+        <label>Email<input id="cemail" type="email"></label>
+        <label>Delivery address<input id="caddr"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Add items to the cart</legend>
+      <div class="row">
+        <label>Item<select id="pick"></select></label>
+        <label>Quantity<input id="qty" type="number" min="1" value="1"></label>
+        <button type="button" id="addCart">Add to cart</button>
+      </div>
+    </fieldset>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Item</th><th>Quantity</th><th>Price</th><th>Amount</th><th></th></tr></thead>
+        <tbody id="cart"></tbody>
+      </table>
+    </div>
+    <div id="emptyCart" class="empty">The cart is empty. Pick an item and add it.</div>
+    <div class="bill" id="bill"></div>
+    <p><button type="button" id="place">Place order</button></p>
+    <div id="msg" role="status"></div>
+  </section>
+
+  <section>
+    <h2>Orders placed</h2>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Order</th><th>Customer</th><th>Contact</th><th>Address</th><th>Items</th><th>Total</th></tr></thead>
+        <tbody id="orders"></tbody>
+      </table>
+    </div>
+    <div id="noOrders" class="empty">No orders yet.</div>
+  </section>
+</main>
+
+<script>
+const KEY = "supermarket-system";
+let items = [
+  {id:1,name:"Basmati rice",cat:"Groceries",unit:"kg",price:95,stock:40},
+  {id:2,name:"Toned milk",cat:"Dairy and Eggs",unit:"litre",price:56,stock:30},
+  {id:3,name:"Tomato",cat:"Fruits and Vegetables",unit:"kg",price:32,stock:25},
+  {id:4,name:"Orange juice",cat:"Beverages",unit:"pack",price:110,stock:3},
+  {id:5,name:"Bath soap",cat:"Personal Care",unit:"pack",price:48,stock:50}
+];
+let orders = [], cart = [];
+try { const d = JSON.parse(localStorage.getItem(KEY)); if (d && d.items) { items = d.items; orders = d.orders || []; } } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify({items, orders})); } catch (e) {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "₹" + n.toFixed(2);
+const CATS = ["Groceries","Fruits and Vegetables","Dairy and Eggs","Beverages","Snacks","Household","Personal Care"];
+const GST = 0.05;
+
+function drawItems() {
+  const f = $("catFlt").value;
+  const list = items.filter(i => !f || i.cat === f);
+  $("items").innerHTML = list.map(i => `<tr><td>${esc(i.name)}</td><td>${esc(i.cat)}</td><td>${esc(i.unit)}</td><td>${money(i.price)}</td>
+    <td class="${i.stock < 5 ? "low" : ""}">${i.stock}${i.stock < 5 ? " (low)" : ""}</td>
+    <td><button class="sm alt" onclick="delItem(${i.id})">Delete</button></td></tr>`).join("");
+  $("pick").innerHTML = items.filter(i => i.stock > 0).map(i => `<option value="${i.id}">${esc(i.name)} (${esc(i.cat)}) – ${money(i.price)}/${esc(i.unit)}</option>`).join("");
+}
+function drawFilter() {
+  const cur = $("catFlt").value;
+  $("catFlt").innerHTML = '<option value="">All categories</option>' + CATS.map(c => `<option>${c}</option>`).join("");
+  $("catFlt").value = cur;
+}
+function drawCart() {
+  $("cart").innerHTML = cart.map((c, n) => `<tr><td>${esc(c.name)}</td><td>${c.qty} ${esc(c.unit)}</td><td>${money(c.price)}</td>
+    <td>${money(c.price * c.qty)}</td><td><button class="sm alt" onclick="rmCart(${n})">Remove</button></td></tr>`).join("");
+  $("emptyCart").hidden = cart.length > 0;
+  const sub = cart.reduce((a, c) => a + c.price * c.qty, 0), tax = sub * GST;
+  $("bill").innerHTML = cart.length ? `<div><span>Subtotal</span><span>${money(sub)}</span></div>
+    <div><span>GST (5%)</span><span>${money(tax)}</span></div><div class="tot"><span>Total</span><span>${money(sub + tax)}</span></div>` : "";
+}
+function drawOrders() {
+  $("orders").innerHTML = orders.slice().reverse().map(o => `<tr><td>${o.no}</td><td>${esc(o.name)}</td>
+    <td>${esc(o.phone)}${o.email ? "<br><small>" + esc(o.email) + "</small>" : ""}</td><td>${esc(o.addr)}</td>
+    <td>${o.lines.map(l => esc(l.name) + " × " + l.qty).join("<br>")}</td><td>${money(o.total)}</td></tr>`).join("");
+  $("noOrders").hidden = orders.length > 0;
+}
+function delItem(id) { items = items.filter(i => i.id !== id); cart = cart.filter(c => c.id !== id); save(); drawItems(); drawCart(); }
+function rmCart(n) { cart.splice(n, 1); drawCart(); }
+
+$("itemForm").addEventListener("submit", e => {
+  e.preventDefault();
+  items.push({id: Date.now(), name: $("iname").value, cat: $("icat").value, unit: $("iunit").value, price: +$("iprice").value, stock: +$("istock").value});
+  save(); e.target.reset(); drawItems();
+});
+$("catFlt").addEventListener("change", drawItems);
+$("addCart").addEventListener("click", () => {
+  $("msg").textContent = "";
+  const it = items.find(i => i.id === +$("pick").value), q = +$("qty").value;
+  if (!it || q < 1) return;
+  const have = cart.filter(c => c.id === it.id).reduce((a, c) => a + c.qty, 0);
+  if (have + q > it.stock) { $("msg").textContent = `Only ${it.stock} ${it.unit} of ${it.name} in stock.`; return; }
+  const line = cart.find(c => c.id === it.id);
+  if (line) line.qty += q; else cart.push({id: it.id, name: it.name, unit: it.unit, price: it.price, qty: q});
+  drawCart();
+});
+$("place").addEventListener("click", () => {
+  const name = $("cname").value.trim(), phone = $("cphone").value.trim(), addr = $("caddr").value.trim();
+  if (!cart.length) { $("msg").textContent = "Add at least one item to the cart."; return; }
+  if (!name || !phone || !addr) { $("msg").textContent = "Enter the customer name, phone and delivery address."; return; }
+  const sub = cart.reduce((a, c) => a + c.price * c.qty, 0);
+  cart.forEach(c => { const it = items.find(i => i.id === c.id); if (it) it.stock -= c.qty; });
+  const no = "ORD" + String(orders.length + 1001);
+  orders.push({no, name, phone, email: $("cemail").value, addr, lines: cart.map(c => ({name: c.name, qty: c.qty})), total: sub * (1 + GST)});
+  cart = []; save(); drawItems(); drawCart(); drawOrders();
+  ["cname","cphone","cemail","caddr"].forEach(id => $(id).value = "");
+  $("msg").textContent = "Order " + no + " placed.";
+});
+drawFilter(); drawItems(); drawCart(); drawOrders();
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RoadRun – Cab Booking</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Figtree:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef1ef;--card:#fff;--ink:#14232b;--mut:#5b6b72;--line:#d5dcd9;--acc:#f2a900;--accink:#14232b;--teal:#0f6b6b;--ok:#1b7f4b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e171c;--card:#16232a;--ink:#eaf0ee;--mut:#9fb0b6;--line:#2a3b44;--teal:#4fc0b8;--ok:#5fd493}}
+:root[data-theme="dark"]{--bg:#0e171c;--card:#16232a;--ink:#eaf0ee;--mut:#9fb0b6;--line:#2a3b44;--teal:#4fc0b8;--ok:#5fd493}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Figtree,system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque",system-ui,sans-serif;margin:0;letter-spacing:-.01em}
+header{background:var(--teal);color:#fff;padding:28px 20px 72px}
+.wrap{max-width:980px;margin:0 auto}
+header .wrap{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+header h1{font-size:clamp(28px,5vw,44px);font-weight:800}
+header p{margin:4px 0 0;opacity:.9}
+.tag{background:var(--acc);color:var(--accink);font-weight:600;border-radius:999px;padding:4px 12px;font-size:14px}
+main{margin:-48px auto 40px;padding:0 16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{flex:1;min-width:110px;padding:10px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:10px;font:600 15px Figtree,sans-serif;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--acc);border-color:var(--acc);color:var(--accink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.hide{display:none!important}
+.go{margin-top:18px;background:var(--ink);color:var(--bg);border:0;border-radius:10px;padding:12px 24px;font:700 16px "Bricolage Grotesque",sans-serif;cursor:pointer}
+.go.acc{background:var(--acc);color:var(--accink)}
+h2{font-size:22px;margin:28px 0 12px}
+.cab{display:flex;align-items:center;gap:16px;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:10px;flex-wrap:wrap}
+.cab b{font:700 18px "Bricolage Grotesque",sans-serif}
+.cab small{color:var(--mut);display:block}
+.price{font:800 24px "Bricolage Grotesque",sans-serif;text-align:right}
+.price small{font:400 13px Figtree,sans-serif}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);max-width:400px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 16px;cursor:pointer;font:inherit}
+.bk{border-left:4px solid var(--ok);background:var(--card);border-radius:10px;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 16px;margin-bottom:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bk.x{border-left-color:var(--mut);opacity:.65}
+.mut{color:var(--mut)}
+footer{text-align:center;color:var(--mut);font-size:14px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<div><h1>RoadRun Cabs</h1><p>Book a city ride, a rental or an outstation trip in a minute.</p></div>
+<span class="tag">SaaS demo · multi-tenant ready</span>
+</div></header>
+
+<main class="wrap">
+<section class="panel" aria-label="Search cabs">
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-m="city">City ride</button>
+<button role="tab" aria-selected="false" data-m="rental">Rental</button>
+<button role="tab" aria-selected="false" data-m="out">Outstation</button>
+</div>
+<div class="grid" id="f">
+<div><label for="from">From (pickup)</label><input id="from" value="Sriperumbudur" list="places"></div>
+<div id="wTo"><label for="to">To (drop)</label><input id="to" value="Chennai Airport" list="places"></div>
+<div class="hide" id="wPkg"><label for="pkg">Package type</label>
+<select id="pkg"><option value="4,40">4 hrs / 40 km</option><option value="8,80">8 hrs / 80 km</option><option value="12,120">12 hrs / 120 km</option></select></div>
+<div class="hide" id="wTrip"><label for="trip">Trip type</label>
+<select id="trip"><option value="one">One way</option><option value="round">Round trip</option></select></div>
+<div class="hide" id="wDays"><label for="days">Days</label><input id="days" type="number" min="1" max="15" value="2"></div>
+<div><label for="date">Pickup date</label><input id="date" type="date"></div>
+<div><label for="time">Pickup time</label><input id="time" type="time" value="09:00"></div>
+<div><label for="pax">Passengers</label><input id="pax" type="number" min="1" max="12" value="2"></div>
+</div>
+<datalist id="places"><option>Sriperumbudur</option><option>Chennai Airport</option><option>T. Nagar, Chennai</option><option>Kanchipuram</option><option>Pondicherry</option><option>Bengaluru</option><option>Tirupati</option><option>Mahabalipuram</option></datalist>
+<button class="go" id="search">Search cabs</button>
+</section>
+
+<div id="results"></div>
+
+<h2>My bookings</h2>
+<div id="bookings"><p class="mut">No bookings yet. Search for a cab to get started.</p></div>
+</main>
+
+<footer>Demo app: fares are simulated. Deploy as static site + API + database on any cloud (see chat for AWS layout).</footer>
+
+<dialog id="dlg"><h3>Confirm booking</h3>
+<p class="mut" id="sum"></p>
+<label for="nm">Your name</label><input id="nm" autocomplete="name">
+<div style="height:10px"></div>
+<label for="ph">Phone</label><input id="ph" type="tel" autocomplete="tel">
+<p id="err" class="mut" style="color:#c0392b;margin:8px 0 0"></p>
+<div class="row"><button class="ghost" id="cancel">Cancel</button><button class="go acc" id="confirm" style="margin:0">Confirm booking</button></div>
+</dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const CABS=[
+{n:"Mini",ex:"Swift, WagonR",s:4,base:60,km:12,hr:110},
+{n:"Sedan",ex:"Dzire, Etios",s:4,base:80,km:15,hr:150},
+{n:"SUV",ex:"Ertiga, Innova",s:7,base:120,km:20,hr:230},
+{n:"Traveller",ex:"Tempo Traveller",s:12,base:250,km:32,hr:400}];
+let mode="city",quote=null,bookings=[];
+try{bookings=JSON.parse(localStorage.getItem("rr_bookings")||"[]")}catch(e){}
+const save=()=>{try{localStorage.setItem("rr_bookings",JSON.stringify(bookings))}catch(e){}};
+const inr=n=>"₹"+Math.round(n).toLocaleString("en-IN");
+$("date").value=new Date(Date.now()+864e5).toISOString().slice(0,10);
+
+function setMode(m){mode=m;
+document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.m===m));
+$("wTo").classList.toggle("hide",m==="rental");
+$("wPkg").classList.toggle("hide",m!=="rental");
+$("wTrip").classList.toggle("hide",m!=="out");
+$("wDays").classList.toggle("hide",!(m==="out"&&$("trip").value==="round"));
+$("results").innerHTML="";
+if(m==="out"&&$("to").value==="Chennai Airport")$("to").value="Pondicherry";
+if(m==="city"&&$("to").value==="Pondicherry")$("to").value="Chennai Airport";}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>setMode(b.dataset.m));
+$("trip").onchange=()=>setMode(mode);
+
+// Simulated distance from place names (stand-in for a maps/distance API)
+function dist(a,b,lo,hi){let h=0;const s=[a.toLowerCase(),b.toLowerCase()].sort().join("|");
+for(const c of s)h=(h*31+c.charCodeAt(0))%9973;return lo+h%(hi-lo+1);}
+
+function search(){
+const from=$("from").value.trim(),to=$("to").value.trim(),pax=+$("pax").value||1;
+if(!from||(mode!=="rental"&&!to)){$("results").innerHTML='<p class="mut">Enter a pickup and drop location to see cabs.</p>';return}
+let d,desc,calc;
+if(mode==="city"){d=dist(from,to,4,35);desc=`${from} to ${to} · about ${d} km`;calc=c=>c.base+d*c.km}
+else if(mode==="rental"){const[h,k]=$("pkg").value.split(",").map(Number);
+desc=`Rental from ${from} · ${h} hrs / ${k} km package`;calc=c=>h*c.hr+k*c.km*.5}
+else{d=dist(from,to,90,550);const round=$("trip").value==="round",days=Math.max(1,+$("days").value||1);
+if(round){const km=Math.max(d*2,days*250);desc=`${from} to ${to} and back · ${days} day${days>1?"s":""} · ${km} km billed`;calc=c=>km*c.km*.8+days*300}
+else{desc=`${from} to ${to} one way · about ${d} km`;calc=c=>d*c.km*.9+300}}
+quote={desc,mode,date:$("date").value,time:$("time").value};
+const list=CABS.filter(c=>c.s>=pax);
+$("results").innerHTML=`<h2>Available cabs</h2><p class="mut">${desc} · ${$("date").value} ${$("time").value}</p>`+
+(list.length?list.map((c,i)=>`<div class="cab"><div><b>${c.n}</b><small>${c.ex} · seats ${c.s}</small></div>
+<div class="price">${inr(calc(c))}<small>est. fare</small></div><button class="go acc" style="margin:0" data-i="${i}">Book</button></div>`).join(""):'<p class="mut">No cab fits that many passengers. Try splitting into two cars.</p>');
+list.forEach((c,i)=>{c.fare=calc(c)});
+$("results").querySelectorAll("button[data-i]").forEach(b=>b.onclick=()=>openBook(list[+b.dataset.i]));}
+$("search").onclick=search;
+
+let pick=null;
+function openBook(c){pick=c;$("err").textContent="";
+$("sum").textContent=`${c.n} · ${quote.desc} · ${inr(c.fare)}`;$("dlg").showModal();}
+$("cancel").onclick=()=>$("dlg").close();
+$("confirm").onclick=()=>{
+const nm=$("nm").value.trim(),ph=$("ph").value.trim();
+if(!nm||!/^[0-9+\s-]{8,15}$/.test(ph)){$("err").textContent="Enter your name and a valid phone number.";return}
+const id="RR"+Date.now().toString(36).toUpperCase().slice(-6);
+bookings.unshift({id,nm,ph,cab:pick.n,fare:pick.fare,desc:quote.desc,date:quote.date,time:quote.time,status:"Confirmed"});
+save();$("dlg").close();$("results").innerHTML=`<h2>Booked</h2><p>Booking <b>${id}</b> is confirmed. The driver details will be sent to ${ph}.</p>`;render();};
+
+function render(){
+$("bookings").innerHTML=bookings.length?bookings.map((b,i)=>`<div class="bk ${b.status==="Cancelled"?"x":""}">
+<div><b>${b.id} · ${b.cab}</b><div class="mut">${b.desc}</div><div class="mut">${b.date} ${b.time} · ${b.nm}</div></div>
+<div style="text-align:right"><b>${inr(b.fare)}</b><div class="mut">${b.status}</div>
+${b.status==="Confirmed"?`<button class="ghost" data-c="${i}">Cancel booking</button>`:""}</div></div>`).join(""):'<p class="mut">No bookings yet. Search for a cab to get started.</p>';
+document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{bookings[+b.dataset.c].status="Cancelled";save();render()});}
+render();
+</script>
+</body>
+</html>

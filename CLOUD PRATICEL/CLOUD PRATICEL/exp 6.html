@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Payroll Processing System</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f5f1;--card:#fff;--ink:#22281f;--mute:#667060;--line:#dbdfd4;--brand:#35561f;--on:#fff;--bad:#a63d2f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171c14;--card:#202719;--ink:#e8ede2;--mute:#a0ab98;--line:#36402e;--brand:#9fd073;--on:#12200a;--bad:#e8806f}}
+:root[data-theme="dark"]{--bg:#171c14;--card:#202719;--ink:#e8ede2;--mute:#a0ab98;--line:#36402e;--brand:#9fd073;--on:#12200a;--bad:#e8806f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,button,input,th{font-family:"Trebuchet MS",Verdana,sans-serif}
+header{background:var(--brand);color:var(--on);padding:24px 16px}
+header h1{margin:0;font-size:1.7rem}header p{margin:4px 0 0;opacity:.9}
+main{max-width:1000px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.15rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+label{font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+input{padding:8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-size:.95rem}
+button{padding:8px 14px;border:0;border-radius:5px;background:var(--brand);color:var(--on);cursor:pointer;font-size:.9rem}
+button.alt{background:transparent;color:var(--bad);border:1px solid var(--bad);padding:4px 8px;font-size:.8rem}
+button:focus-visible,input:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:.92rem}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:600}
+td.net{font-weight:bold}
+tfoot td{font-weight:bold;border-top:2px solid var(--line)}
+.hint{color:var(--mute);font-size:.85rem;margin:6px 0 0}
+.empty{color:var(--mute);padding:12px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Payroll Processing System</h1>
+  <p>Enter basic pay once. Allowances, deductions, gross pay and net pay are calculated for you.</p>
+</header>
+<main>
+  <section>
+    <h2>Pay rules (percent of basic pay)</h2>
+    <div class="grid">
+      <label>HRA %<input id="rHra" type="number" min="0" step="0.1" value="20"></label>
+      <label>DA %<input id="rDa" type="number" min="0" step="0.1" value="10"></label>
+      <label>TA %<input id="rTa" type="number" min="0" step="0.1" value="5"></label>
+      <label>PF deduction %<input id="rPf" type="number" min="0" step="0.1" value="12"></label>
+      <label>Tax deduction % of gross<input id="rTax" type="number" min="0" step="0.1" value="5"></label>
+    </div>
+    <p class="hint">Changing a rate updates every employee instantly.</p>
+  </section>
+
+  <section>
+    <h2>Add employee</h2>
+    <form id="f">
+      <div class="grid">
+        <label>Name of the employee<input id="name" required></label>
+        <label>Experience in present organisation (years)<input id="exp" type="number" min="0" step="0.5" required></label>
+        <label>Overall experience (years)<input id="tot" type="number" min="0" step="0.5" required></label>
+        <label>Basic pay (₹)<input id="basic" type="number" min="0" required></label>
+      </div>
+      <button type="submit">Add employee</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Payroll register</h2>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Name</th><th>Years in org</th><th>Overall years</th><th>Basic</th><th>HRA</th><th>DA</th><th>TA</th><th>Gross pay</th><th>PF</th><th>Tax</th><th>Net pay</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+        <tfoot id="foot"></tfoot>
+      </table>
+    </div>
+    <div id="none" class="empty" hidden>No employees yet. Add one above.</div>
+  </section>
+</main>
+
+<script>
+const KEY = "payroll-system";
+let emps = [
+  {id:1,name:"Dr. Ramesh Babu",exp:8,tot:14,basic:75000},
+  {id:2,name:"Lakshmi Priya",exp:3,tot:5,basic:42000},
+  {id:3,name:"Suresh Kumar",exp:12,tot:12,basic:58000}
+];
+try { const d = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(d)) emps = d; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(emps)); } catch (e) {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rate = id => (+$(id).value || 0) / 100;
+const fmt = n => "₹" + n.toLocaleString("en-IN", {maximumFractionDigits: 2, minimumFractionDigits: 2});
+
+function pay(e) {
+  const hra = e.basic * rate("rHra"), da = e.basic * rate("rDa"), ta = e.basic * rate("rTa");
+  const gross = e.basic + hra + da + ta;
+  const pf = e.basic * rate("rPf"), tax = gross * rate("rTax");
+  return {hra, da, ta, gross, pf, tax, net: gross - pf - tax};
+}
+function render() {
+  const sum = {basic:0, gross:0, net:0};
+  $("rows").innerHTML = emps.map(e => {
+    const p = pay(e);
+    sum.basic += e.basic; sum.gross += p.gross; sum.net += p.net;
+    return `<tr><td>${esc(e.name)}</td><td>${e.exp}</td><td>${e.tot}</td><td>${fmt(e.basic)}</td>
+    <td>${fmt(p.hra)}</td><td>${fmt(p.da)}</td><td>${fmt(p.ta)}</td><td>${fmt(p.gross)}</td>
+    <td>${fmt(p.pf)}</td><td>${fmt(p.tax)}</td><td class="net">${fmt(p.net)}</td>
+    <td><button class="alt" onclick="del(${e.id})">Delete</button></td></tr>`;
+  }).join("");
+  $("foot").innerHTML = emps.length ? `<tr><td colspan="3">Total (${emps.length} employees)</td><td>${fmt(sum.basic)}</td><td colspan="3"></td><td>${fmt(sum.gross)}</td><td colspan="2"></td><td>${fmt(sum.net)}</td><td></td></tr>` : "";
+  $("none").hidden = emps.length > 0;
+}
+function del(id) { emps = emps.filter(e => e.id !== id); save(); render(); }
+
+$("f").addEventListener("submit", e => {
+  e.preventDefault();
+  emps.push({id: Date.now(), name: $("name").value, exp: +$("exp").value, tot: +$("tot").value, basic: +$("basic").value});
+  save(); e.target.reset(); render();
+});
+["rHra","rDa","rTa","rPf","rTax"].forEach(id => $(id).addEventListener("input", render));
+render();
+</script>
+</body>
+</html>

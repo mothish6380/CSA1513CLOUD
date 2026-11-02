@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Madras Nest – Chennai Property SaaS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3f5;--card:#fff;--ink:#12232b;--mut:#5b6f78;--line:#d3dee3;--brand:#0f3d4c;--acc:#e8a317;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1a20;--card:#15272f;--ink:#e8f0f3;--mut:#93a8b1;--line:#284049;--brand:#5fb4cc;--on:#0d1a20}}
+:root[data-theme="dark"]{--bg:#0d1a20;--card:#15272f;--ink:#e8f0f3;--mut:#93a8b1;--line:#284049;--brand:#5fb4cc;--on:#0d1a20}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Bricolage Grotesque',system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5}
+header{background:var(--brand);color:var(--on);padding:22px 20px 0}
+.wrap{max-width:1000px;margin:auto}
+h1{margin:0;font-size:clamp(26px,5vw,40px);font-weight:800;letter-spacing:-.02em}
+header p{margin:4px 0 16px;opacity:.85}
+nav{display:flex;gap:4px;overflow-x:auto}
+nav button{background:transparent;border:0;color:inherit;opacity:.75;padding:10px 16px;font:600 15px inherit;font-family:inherit;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+nav button.on{opacity:1;border-color:var(--acc)}
+main{max-width:1000px;margin:auto;padding:20px}
+.bar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+input,select,textarea{font:inherit;padding:9px 11px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);min-width:0}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.btn{background:var(--brand);color:var(--on);border:0;padding:10px 18px;border-radius:6px;font:600 15px inherit;font-family:inherit;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.p{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--acc);color:#12232b;width:fit-content}
+.tag.rent{background:#8fd3c1}.tag.com{background:#b9c4f2}
+.price{font-size:22px;font-weight:800;color:var(--brand)}
+.mut{color:var(--mut);font-size:14px}
+.p h3{margin:2px 0;font-size:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px}
+.stat b{display:block;font-size:26px}
+form{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600}
+.full{grid-column:1/-1}
+.doc{background:#fff;color:#111;border:1px solid var(--line);border-radius:8px;padding:28px;margin-top:16px;font-family:Georgia,serif;white-space:pre-wrap;line-height:1.6}
+.hide{display:none}
+@media print{header,nav,form,.noprint{display:none!important}.doc{border:0}}
+</style></head><body>
+<header><div class="wrap">
+<h1>Madras Nest</h1><p>Buy, rent and lease property in Chennai. Cloud-hosted SaaS demo.</p>
+<nav id="nav"></nav></div></header>
+<main>
+<section id="listings"></section>
+<section id="add" class="hide"></section>
+<section id="agree" class="hide"></section>
+<section id="dash" class="hide"></section>
+</main>
+<script>
+const AREAS={"Adyar":"South Chennai","Anna Nagar":"West Chennai","T. Nagar":"Central Chennai","Velachery":"South Chennai","OMR (Sholinganallur)":"South Chennai","Porur":"West Chennai","Tambaram":"South Chennai","Mylapore":"Central Chennai","Guindy":"South Chennai","Ambattur":"North Chennai","Perambur":"North Chennai","Sriperumbudur":"Outer Chennai"};
+const TYPES=["Apartment","Independent House","Villa","Plot","Office Space","Shop","Warehouse"];
+const seed=[
+{id:1,title:"3 BHK near Besant Nagar beach",mode:"Buy",cat:"Residential",type:"Apartment",area:"Adyar",sqft:1650,price:19500000,owner:"R. Krishnan",contact:"98400 11111"},
+{id:2,title:"2 BHK semi-furnished flat",mode:"Rent",cat:"Residential",type:"Apartment",area:"Velachery",sqft:1050,price:24000,deposit:120000,owner:"S. Meena",contact:"98400 22222"},
+{id:3,title:"Ground-floor retail shop, main road",mode:"Rent",cat:"Commercial",type:"Shop",area:"T. Nagar",sqft:600,price:85000,deposit:510000,owner:"M. Abdul",contact:"98400 33333"},
+{id:4,title:"IT office floor, 40 seats",mode:"Rent",cat:"Commercial",type:"Office Space",area:"OMR (Sholinganallur)",sqft:3200,price:210000,deposit:1260000,owner:"Bayview Estates",contact:"98400 44444"},
+{id:5,title:"Gated villa with garden",mode:"Buy",cat:"Residential",type:"Villa",area:"Porur",sqft:2400,price:16800000,owner:"K. Venkat",contact:"98400 55555"},
+{id:6,title:"DTCP-approved residential plot",mode:"Buy",cat:"Residential",type:"Plot",area:"Tambaram",sqft:1200,price:5400000,owner:"P. Lakshmi",contact:"98400 66666"},
+{id:7,title:"Warehouse near industrial corridor",mode:"Buy",cat:"Commercial",type:"Warehouse",area:"Sriperumbudur",sqft:12000,price:42000000,owner:"Sun Logistics",contact:"98400 77777"},
+{id:8,title:"1 BHK for bachelors / couples",mode:"Rent",cat:"Residential",type:"Apartment",area:"Anna Nagar",sqft:620,price:16000,deposit:80000,owner:"D. Raj",contact:"98400 88888"}];
+let data=seed.slice();
+try{const s=localStorage.getItem("mn_props");if(s)data=JSON.parse(s)}catch(e){}
+const save=()=>{try{localStorage.setItem("mn_props",JSON.stringify(data))}catch(e){}};
+const $=id=>document.getElementById(id);
+const inr=n=>n>=1e7?"₹"+(n/1e7).toFixed(2)+" Cr":n>=1e5?"₹"+(n/1e5).toFixed(2)+" L":"₹"+n.toLocaleString("en-IN");
+const tabs={listings:"Properties",add:"List a property",agree:"Rental agreement",dash:"Dashboard"};
+function show(t){for(const k in tabs){$(k).classList.toggle("hide",k!==t)}[...$("nav").children].forEach(b=>b.classList.toggle("on",b.dataset.t===t));if(t==="listings")renderList();if(t==="dash")renderDash();if(t==="agree")fillAgree()}
+$("nav").innerHTML=Object.entries(tabs).map(([k,v])=>`<button data-t="${k}">${v}</button>`).join("");
+$("nav").onclick=e=>{if(e.target.dataset.t)show(e.target.dataset.t)};
+const opts=o=>o.map(x=>`<option>${x}</option>`).join("");
+$("listings").innerHTML=`<div class="bar">
+<select id="fMode"><option value="">Buy or rent</option><option>Buy</option><option>Rent</option></select>
+<select id="fCat"><option value="">Residential + commercial</option><option>Residential</option><option>Commercial</option></select>
+<select id="fArea"><option value="">All areas</option>${opts(Object.keys(AREAS))}</select>
+<select id="fType"><option value="">All types</option>${opts(TYPES)}</select>
+<input id="fMin" type="number" placeholder="Min ₹" style="width:120px"><input id="fMax" type="number" placeholder="Max ₹" style="width:120px">
+<button class="btn alt" id="reset">Clear filters</button></div>
+<p class="mut" id="count"></p><div class="grid" id="grid"></div>`;
+function renderList(){
+ const g=id=>$(id).value,mn=+g("fMin")||0,mx=+g("fMax")||Infinity;
+ const r=data.filter(p=>(!g("fMode")||p.mode===g("fMode"))&&(!g("fCat")||p.cat===g("fCat"))&&(!g("fArea")||p.area===g("fArea"))&&(!g("fType")||p.type===g("fType"))&&p.price>=mn&&p.price<=mx);
+ $("count").textContent=r.length+" propert"+(r.length===1?"y":"ies")+" found";
+ $("grid").innerHTML=r.length?r.map(p=>`<div class="p"><span class="tag ${p.cat==='Commercial'?'com':p.mode==='Rent'?'rent':''}">${p.mode} · ${p.cat}</span>
+<h3>${p.title}</h3><div class="mut">${p.type} · ${p.sqft} sq.ft</div>
+<div class="mut">${p.area}, ${AREAS[p.area]||"Chennai"}</div>
+<div class="price">${inr(p.price)}${p.mode==="Rent"?" / month":""}</div>
+${p.mode==="Rent"?`<div class="mut">Deposit ${inr(p.deposit||0)}</div>`:`<div class="mut">≈ ₹${Math.round(p.price/p.sqft).toLocaleString("en-IN")} per sq.ft</div>`}
+<div class="mut">${p.owner} · ${p.contact}</div>
+${p.mode==="Rent"?`<button class="btn alt" onclick="draft(${p.id})">Create rental agreement</button>`:""}</div>`).join(""):`<p>No matches. Widen the price range or pick another area.</p>`}
+["fMode","fCat","fArea","fType","fMin","fMax"].forEach(i=>$(i).oninput=renderList);
+$("reset").onclick=()=>{["fMode","fCat","fArea","fType","fMin","fMax"].forEach(i=>$(i).value="");renderList()};
+$("add").innerHTML=`<form id="addF">
+<label class="full">Title<input name="title" required maxlength="80" placeholder="e.g. 2 BHK near metro"></label>
+<label>Purpose<select name="mode"><option>Buy</option><option>Rent</option></select></label>
+<label>Category<select name="cat"><option>Residential</option><option>Commercial</option></select></label>
+<label>Property type<select name="type">${opts(TYPES)}</select></label>
+<label>Area / place<select name="area">${opts(Object.keys(AREAS))}</select></label>
+<label>Size (sq.ft)<input name="sqft" type="number" min="1" required></label>
+<label>Property value or monthly rent (₹)<input name="price" type="number" min="1" required></label>
+<label>Security deposit (₹, rent only)<input name="deposit" type="number" min="0"></label>
+<label>Owner name<input name="owner" required></label>
+<label>Contact number<input name="contact" required></label>
+<div class="full"><button class="btn" type="submit">Publish listing</button> <span id="msg" class="mut"></span></div></form>`;
+$("addF").onsubmit=e=>{e.preventDefault();const f=Object.fromEntries(new FormData(e.target));
+ f.id=Date.now();f.sqft=+f.sqft;f.price=+f.price;f.deposit=+f.deposit||f.price*6;data.unshift(f);save();e.target.reset();$("msg").textContent="Published. It now shows under Properties."};
+$("agree").innerHTML=`<form id="agF">
+<label class="full">Rental property<select id="aProp"></select></label>
+<label>Landlord name<input id="aLL" required></label><label>Tenant name<input id="aTN" required></label>
+<label>Monthly rent (₹)<input id="aRent" type="number" required></label><label>Security deposit (₹)<input id="aDep" type="number" required></label>
+<label>Start date<input id="aDate" type="date" required></label>
+<label>Lease term<select id="aTerm"><option value="11">11 months (standard)</option><option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option></select></label>
+<div class="full"><button class="btn" type="submit">Generate agreement</button></div></form>
+<div id="out"></div>`;
+function fillAgree(){const r=data.filter(p=>p.mode==="Rent");$("aProp").innerHTML=r.map(p=>`<option value="${p.id}">${p.title} – ${p.area}</option>`).join("");pick()}
+function pick(){const p=data.find(x=>x.id==$("aProp").value);if(p){$("aLL").value=p.owner;$("aRent").value=p.price;$("aDep").value=p.deposit||p.price*6}}
+$("aProp").onchange=pick;
+window.draft=id=>{show("agree");$("aProp").value=id;pick();window.scrollTo(0,0)};
+$("agF").onsubmit=e=>{e.preventDefault();const p=data.find(x=>x.id==$("aProp").value);if(!p)return;
+ const s=new Date($("aDate").value),m=+$("aTerm").value,en=new Date(s);en.setMonth(en.getMonth()+m);en.setDate(en.getDate()-1);
+ const d=x=>x.toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+ const rent=+$("aRent").value,dep=+$("aDep").value;
+ $("out").innerHTML=`<div class="doc" id="docTxt">RENTAL AGREEMENT
+
+This agreement is made at Chennai, Tamil Nadu on ${d(new Date())} between
+
+LANDLORD: ${$("aLL").value}
+TENANT: ${$("aTN").value}
+
+PROPERTY: ${p.title}, ${p.type}, ${p.sqft} sq.ft, ${p.area}, Chennai (${p.cat}).
+
+1. Term: ${m} months, from ${d(s)} to ${d(en)}.
+2. Rent: ₹${rent.toLocaleString("en-IN")} per month, payable on or before the 5th of each month.
+3. Security deposit: ₹${dep.toLocaleString("en-IN")}, refundable without interest on vacating, after deducting dues and damages.
+4. Rent revision: 5% increase on renewal, unless agreed otherwise in writing.
+5. Maintenance, electricity (TANGEDCO), water and metro water charges are paid by the tenant.
+6. Use: ${p.cat==="Commercial"?"commercial use lawful for the agreed business only":"residential use only"}. No subletting without written consent.
+7. Notice: either party may end this agreement with 2 months' written notice.
+8. Registration: this agreement should be printed on stamp paper and registered as per Tamil Nadu Registration Department rules for leases.
+
+LANDLORD signature: ______________     TENANT signature: ______________
+WITNESS 1: ______________     WITNESS 2: ______________
+
+Sample template for demonstration. Have it reviewed by a lawyer before use.</div>
+<p class="noprint"><button class="btn" onclick="window.print()">Print or save as PDF</button></p>`};
+function renderDash(){
+ const by=(f)=>data.filter(f).length,avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+ const buy=data.filter(p=>p.mode==="Buy"),rent=data.filter(p=>p.mode==="Rent");
+ const rows=Object.keys(AREAS).map(a=>[a,data.filter(p=>p.area===a).length]).filter(r=>r[1]).sort((x,y)=>y[1]-x[1]);
+ const mx=Math.max(...rows.map(r=>r[1]),1);
+ $("dash").innerHTML=`<div class="stats">
+<div class="stat"><b>${data.length}</b><span class="mut">Total listings</span></div>
+<div class="stat"><b>${by(p=>p.mode==="Buy")}</b><span class="mut">For sale</span></div>
+<div class="stat"><b>${by(p=>p.mode==="Rent")}</b><span class="mut">For rent</span></div>
+<div class="stat"><b>${by(p=>p.cat==="Commercial")}</b><span class="mut">Commercial</span></div>
+<div class="stat"><b>${inr(avg(buy.map(p=>p.price)))}</b><span class="mut">Average sale value</span></div>
+<div class="stat"><b>${inr(avg(rent.map(p=>p.price)))}</b><span class="mut">Average monthly rent</span></div></div>
+<div class="p"><h3>Listings by area</h3>${rows.map(([a,n])=>`<div style="display:flex;align-items:center;gap:10px"><span style="width:160px;font-size:14px">${a}</span><span style="height:14px;border-radius:3px;background:var(--brand);width:${n/mx*60}%;min-width:14px"></span><b>${n}</b></div>`).join("")}</div>
+<p><button class="btn alt" onclick="data=seed.slice();save();renderDash()">Reset demo data</button></p>`}
+show("listings");
+</script></body></html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIMATS Hospital Information System</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6f6;--card:#fff;--ink:#1b2a2c;--mute:#5c6e70;--line:#d8e1e2;--brand:#0d6670;--on:#fff;--ok:#1d7a46;--bad:#a63d2f;--warn:#9a6b00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101b1c;--card:#192a2b;--ink:#e5eeee;--mute:#9db2b4;--line:#2d4244;--brand:#5fc6d2;--on:#06252a;--ok:#5fc98a;--bad:#e8806f;--warn:#e6b84d}}
+:root[data-theme="dark"]{--bg:#101b1c;--card:#192a2b;--ink:#e5eeee;--mute:#9db2b4;--line:#2d4244;--brand:#5fc6d2;--on:#06252a;--ok:#5fc98a;--bad:#e8806f;--warn:#e6b84d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,button,input,select,th{font-family:"Trebuchet MS",Verdana,sans-serif}
+header{background:var(--brand);color:var(--on);padding:24px 16px}
+header h1{margin:0;font-size:1.7rem}header p{margin:4px 0 0;opacity:.9}
+main{max-width:1000px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.15rem}
+fieldset{border:1px solid var(--line);border-radius:6px;margin:0 0 12px;padding:10px}
+legend{color:var(--mute);font-size:.85rem;padding:0 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label{font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+input,select{padding:8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-size:.95rem}
+button{padding:8px 14px;border:0;border-radius:5px;background:var(--brand);color:var(--on);cursor:pointer;font-size:.9rem}
+button.sm{padding:4px 8px;font-size:.8rem;margin-right:3px}
+button.alt{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}.tools input{flex:1;min-width:180px}
+.stats{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:10px;color:var(--mute);font-size:.9rem}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:1000px;font-size:.92rem}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600}
+.Admitted{color:var(--warn);font-weight:bold}.Discharged{color:var(--ok);font-weight:bold}
+.empty{color:var(--mute);padding:12px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>SIMATS Hospital Information System</h1>
+  <p>Register patients, record attender and doctor details, and track admission and discharge.</p>
+</header>
+<main>
+  <section>
+    <h2>Register a patient</h2>
+    <form id="f">
+      <fieldset><legend>Patient</legend>
+        <div class="grid">
+          <label>Patient name<input id="name" required></label>
+          <label>Age<input id="age" type="number" min="0" max="120" required></label>
+          <label>Gender
+            <select id="gender" required><option value="">Select</option><option>Female</option><option>Male</option><option>Other</option></select>
+          </label>
+          <label>Phone<input id="phone" type="tel" pattern="[0-9+ ]{10,14}" title="Enter a 10 to 14 digit phone number" required></label>
+          <label>Email<input id="email" type="email"></label>
+          <label>Address<input id="addr" required></label>
+        </div>
+      </fieldset>
+      <fieldset><legend>Attender</legend>
+        <div class="grid">
+          <label>Attender name<input id="aname" required></label>
+          <label>Attender phone<input id="aphone" type="tel" pattern="[0-9+ ]{10,14}" title="Enter a 10 to 14 digit phone number" required></label>
+        </div>
+      </fieldset>
+      <fieldset><legend>Treatment</legend>
+        <div class="grid">
+          <label>Disease or complaint<input id="disease" required></label>
+          <label>Doctor name<input id="doctor" required></label>
+          <label>Department<input id="dept" placeholder="e.g. Cardiology" required></label>
+          <label>Ward or room no.<input id="room"></label>
+        </div>
+      </fieldset>
+      <button type="submit">Register patient</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Patient register</h2>
+    <div class="tools">
+      <input id="q" placeholder="Search by patient, doctor, disease or phone" aria-label="Search patients">
+      <select id="flt" aria-label="Filter by status">
+        <option value="">All patients</option><option>Admitted</option><option>Discharged</option>
+      </select>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Patient ID</th><th>Patient</th><th>Contact</th><th>Address</th><th>Attender</th><th>Doctor</th><th>Disease</th><th>Room</th><th>Status</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div id="none" class="empty" hidden>No patients match. Register a patient or change the search.</div>
+  </section>
+</main>
+
+<script>
+const KEY = "hospital-system";
+let pts = [
+  {id:1001,name:"Meena Kumari",age:46,gender:"Female",phone:"9876501234",email:"meena@example.com",addr:"Sriperumbudur",aname:"Rajan",aphone:"9876505678",disease:"Type 2 diabetes",doctor:"Dr. Anand",dept:"General Medicine",room:"W2-14",status:"Admitted"},
+  {id:1002,name:"Vikram S",age:29,gender:"Male",phone:"9123409876",email:"",addr:"Tambaram, Chennai",aname:"Sunitha",aphone:"9123401122",disease:"Fractured wrist",doctor:"Dr. Kavitha",dept:"Orthopaedics",room:"W1-03",status:"Discharged"}
+];
+try { const d = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(d)) pts = d; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(pts)); } catch (e) {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render() {
+  const q = $("q").value.toLowerCase(), f = $("flt").value;
+  const rows = pts.filter(p => (!f || p.status === f) && (p.name + p.doctor + p.disease + p.phone).toLowerCase().includes(q));
+  $("rows").innerHTML = rows.map(p => `<tr><td>P${p.id}</td>
+    <td>${esc(p.name)}<br><small>${p.age} yrs, ${esc(p.gender)}</small></td>
+    <td>${esc(p.phone)}${p.email ? `<br><small>${esc(p.email)}</small>` : ""}</td><td>${esc(p.addr)}</td>
+    <td>${esc(p.aname)}<br><small>${esc(p.aphone)}</small></td>
+    <td>${esc(p.doctor)}<br><small>${esc(p.dept)}</small></td><td>${esc(p.disease)}</td><td>${esc(p.room || "-")}</td>
+    <td class="${p.status}">${p.status}<br>${p.status === "Admitted" ? `<button class="sm" onclick="discharge(${p.id})">Discharge</button>` : ""}</td>
+    <td><button class="sm alt" onclick="del(${p.id})">Delete</button></td></tr>`).join("");
+  $("none").hidden = rows.length > 0;
+  $("stats").textContent = `Total patients: ${pts.length}  |  Admitted: ${pts.filter(p => p.status === "Admitted").length}  |  Discharged: ${pts.filter(p => p.status === "Discharged").length}`;
+}
+function discharge(id) { pts.find(p => p.id === id).status = "Discharged"; save(); render(); }
+function del(id) { pts = pts.filter(p => p.id !== id); save(); render(); }
+
+$("f").addEventListener("submit", e => {
+  e.preventDefault();
+  const next = pts.reduce((m, p) => Math.max(m, p.id), 1000) + 1;
+  pts.push({id: next, name: $("name").value, age: +$("age").value, gender: $("gender").value, phone: $("phone").value,
+    email: $("email").value, addr: $("addr").value, aname: $("aname").value, aphone: $("aphone").value,
+    disease: $("disease").value, doctor: $("doctor").value, dept: $("dept").value, room: $("room").value, status: "Admitted"});
+  save(); e.target.reset(); render();
+});
+$("q").addEventListener("input", render);
+$("flt").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>

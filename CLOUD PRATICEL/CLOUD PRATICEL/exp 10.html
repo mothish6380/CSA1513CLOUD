@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Student Information – C Program Runner</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f4f7;--card:#fff;--ink:#22232e;--mute:#656779;--line:#dcdde6;--brand:#3a3f9e;--on:#fff;--code:#1c1e2b;--codeink:#d9ecd0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14151d;--card:#1d1f2b;--ink:#e8e9f2;--mute:#a1a3b8;--line:#33364a;--brand:#9ea4ff;--on:#12133a;--code:#0c0d14;--codeink:#d9ecd0}}
+:root[data-theme="dark"]{--bg:#14151d;--card:#1d1f2b;--ink:#e8e9f2;--mute:#a1a3b8;--line:#33364a;--brand:#9ea4ff;--on:#12133a;--code:#0c0d14;--codeink:#d9ecd0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,button,input,th,label{font-family:"Trebuchet MS",Verdana,sans-serif}
+header{background:var(--brand);color:var(--on);padding:24px 16px}
+header h1{margin:0;font-size:1.7rem}header p{margin:4px 0 0;opacity:.9}
+main{max-width:1000px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.15rem}
+fieldset{border:1px solid var(--line);border-radius:6px;margin:0 0 12px;padding:10px}
+legend{color:var(--mute);font-size:.85rem;padding:0 6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label{font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+input{padding:8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-size:.95rem}
+button{padding:8px 14px;border:0;border-radius:5px;background:var(--brand);color:var(--on);cursor:pointer;font-size:.9rem;margin-right:6px}
+button.alt{background:transparent;color:var(--brand);border:1px solid var(--brand)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+pre{background:var(--code);color:var(--codeink);padding:12px;border-radius:6px;overflow-x:auto;max-width:100%;font:13px/1.45 Consolas,"Courier New",monospace;margin:0 0 10px;white-space:pre}
+.note{color:var(--mute);font-size:.85rem;margin:8px 0 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Student Information – C Program Runner</h1>
+  <p>Fill in the student template, generate the C program, and run it to see the reports.</p>
+</header>
+<main>
+  <section>
+    <h2>Student template</h2>
+    <fieldset><legend>Student details</legend>
+      <div class="grid">
+        <label>Student name<input id="name" value="Arun Kumar"></label>
+        <label>Reg no.<input id="reg" value="192011001"></label>
+        <label>Address<input id="addr" value="Sriperumbudur, Tamil Nadu"></label>
+        <label>Phone<input id="phone" value="9876543210"></label>
+        <label>Age<input id="age" type="number" min="1" max="99" value="19"></label>
+        <label>Course<input id="course" value="B.E. Computer Science"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Semester mark sheet (marks out of 100)</legend>
+      <div class="grid">
+        <label>Semester no.<input id="sem" type="number" min="1" max="12" value="3"></label>
+        <label>Subject 1<input id="s0" value="Data Structures"></label><label>Marks<input id="m0" type="number" min="0" max="100" value="88"></label>
+        <label>Subject 2<input id="s1" value="Operating Systems"></label><label>Marks<input id="m1" type="number" min="0" max="100" value="76"></label>
+        <label>Subject 3<input id="s2" value="Discrete Maths"></label><label>Marks<input id="m2" type="number" min="0" max="100" value="64"></label>
+        <label>Subject 4<input id="s3" value="C Programming"></label><label>Marks<input id="m3" type="number" min="0" max="100" value="92"></label>
+      </div>
+    </fieldset>
+    <fieldset><legend>Attendance</legend>
+      <div class="grid">
+        <label>Total classes held<input id="tot" type="number" min="1" value="90"></label>
+        <label>Classes attended<input id="att" type="number" min="0" value="78"></label>
+      </div>
+    </fieldset>
+  </section>
+
+  <section>
+    <h2>C program (generated from the template)</h2>
+    <pre id="code" aria-label="Generated C program"></pre>
+    <button id="run">Run program</button>
+    <button id="copy" class="alt">Copy C code</button>
+    <p class="note">To run this on a real machine, save it as <code>student.c</code>, compile with <code>gcc student.c -o student</code>, and run <code>./student</code>.</p>
+  </section>
+
+  <section>
+    <h2>Program output</h2>
+    <pre id="out">Press "Run program" to see the output.</pre>
+    <p class="note">This page runs the program's logic in your browser to show the output. It does not compile C. A server-side compiler (for example AWS Lambda or a hosted code-runner API) would be needed to compile real C code.</p>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const cs = s => String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/[\r\n]+/g, " ");
+const num = (id, d) => { const v = parseInt($(id).value, 10); return isNaN(v) ? d : v; };
+
+function grade(m) { return m >= 90 ? "O" : m >= 80 ? "A+" : m >= 70 ? "A" : m >= 60 ? "B" : m >= 50 ? "C" : "U"; }
+function progress(p) { return p >= 75 ? "Excellent progress" : p >= 60 ? "Good progress" : p >= 40 ? "Satisfactory - needs improvement" : "At risk - counselling advised"; }
+function data() {
+  return {
+    name: $("name").value, reg: $("reg").value, addr: $("addr").value, phone: $("phone").value,
+    age: num("age", 0), course: $("course").value, sem: num("sem", 1),
+    subs: [0,1,2,3].map(i => $("s" + i).value), marks: [0,1,2,3].map(i => Math.min(100, Math.max(0, num("m" + i, 0)))),
+    tot: Math.max(1, num("tot", 1)), att: Math.max(0, num("att", 0))
+  };
+}
+
+function makeC(d) {
+  return String.raw`#include <stdio.h>
+
+struct Student {
+    char name[50], reg[20], address[80], phone[15], course[50];
+    int age, semester;
+    char subject[4][40];
+    int marks[4];
+    int totalClasses, attended;
+};
+
+const char *grade(int m) {
+    if (m >= 90) return "O";
+    if (m >= 80) return "A+";
+    if (m >= 70) return "A";
+    if (m >= 60) return "B";
+    if (m >= 50) return "C";
+    return "U";
+}
+
+int main(void) {
+    struct Student s = {
+        "${cs(d.name)}", "${cs(d.reg)}", "${cs(d.addr)}", "${cs(d.phone)}", "${cs(d.course)}",
+        ${d.age}, ${d.sem},
+        {"${d.subs.map(cs).join('", "')}"},
+        {${d.marks.join(", ")}},
+        ${d.tot}, ${d.att}
+    };
+    int i, total = 0, fail = 0;
+    float pct, attPct;
+
+    printf("===== STUDENT INFORMATION =====\n");
+    printf("Name    : %s\n", s.name);
+    printf("Reg no. : %s\n", s.reg);
+    printf("Address : %s\n", s.address);
+    printf("Phone   : %s\n", s.phone);
+    printf("Age     : %d\n", s.age);
+    printf("Course  : %s\n\n", s.course);
+
+    for (i = 0; i < 4; i++) {
+        total += s.marks[i];
+        if (s.marks[i] < 50) fail = 1;
+    }
+    pct = total / 4.0;
+    attPct = s.attended * 100.0 / s.totalClasses;
+
+    printf("===== ATTENDANCE REPORT =====\n");
+    printf("Classes held     : %d\n", s.totalClasses);
+    printf("Classes attended : %d\n", s.attended);
+    printf("Attendance       : %.2f%%\n", attPct);
+    printf("Status           : %s\n\n", attPct >= 75 ? "Eligible" : "Shortage");
+
+    printf("===== SEMESTER %d MARK SHEET =====\n", s.semester);
+    printf("%-22s %5s  %s\n", "Subject", "Marks", "Grade");
+    for (i = 0; i < 4; i++)
+        printf("%-22s %5d  %s\n", s.subject[i], s.marks[i], grade(s.marks[i]));
+    printf("Total: %d / 400   Percentage: %.2f%%\n", total, pct);
+    printf("Result: %s\n\n", fail ? "FAIL" : "PASS");
+
+    printf("===== PROGRESS REPORT =====\n");
+    if (pct >= 75) printf("Excellent progress\n");
+    else if (pct >= 60) printf("Good progress\n");
+    else if (pct >= 40) printf("Satisfactory - needs improvement\n");
+    else printf("At risk - counselling advised\n");
+    return 0;
+}
+`;
+}
+
+function runOutput(d) {
+  const total = d.marks.reduce((a, b) => a + b, 0), pct = total / 4;
+  const fail = d.marks.some(m => m < 50);
+  const ap = d.att * 100 / d.tot;
+  const L = [];
+  L.push("===== STUDENT INFORMATION =====", "Name    : " + d.name, "Reg no. : " + d.reg, "Address : " + d.addr,
+    "Phone   : " + d.phone, "Age     : " + d.age, "Course  : " + d.course, "");
+  L.push("===== ATTENDANCE REPORT =====", "Classes held     : " + d.tot, "Classes attended : " + d.att,
+    "Attendance       : " + ap.toFixed(2) + "%", "Status           : " + (ap >= 75 ? "Eligible" : "Shortage"), "");
+  L.push("===== SEMESTER " + d.sem + " MARK SHEET =====", "Subject".padEnd(22) + " " + "Marks".padStart(5) + "  Grade");
+  d.subs.forEach((s, i) => L.push(s.padEnd(22) + " " + String(d.marks[i]).padStart(5) + "  " + grade(d.marks[i])));
+  L.push("Total: " + total + " / 400   Percentage: " + pct.toFixed(2) + "%", "Result: " + (fail ? "FAIL" : "PASS"), "");
+  L.push("===== PROGRESS REPORT =====", progress(pct));
+  return L.join("\n");
+}
+
+function refresh() { $("code").textContent = makeC(data()); }
+document.querySelectorAll("input").forEach(i => i.addEventListener("input", refresh));
+$("run").addEventListener("click", () => { $("out").textContent = runOutput(data()); });
+$("copy").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText($("code").textContent); $("copy").textContent = "Copied"; }
+  catch (e) { $("copy").textContent = "Select the code and copy manually"; }
+  setTimeout(() => { $("copy").textContent = "Copy C code"; }, 2000);
+});
+refresh();
+</script>
+</body>
+</html>

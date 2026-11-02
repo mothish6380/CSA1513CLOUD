@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIMATS Library – Book Reservation</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f3f6f4;--card:#fff;--ink:#16302b;--mute:#5d716c;--line:#d5dfdb;--brand:#0f5e55;--on:#fff;--ok:#1d7a46;--bad:#a63d2f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10201d;--card:#172a26;--ink:#e6efec;--mute:#9bb1ab;--line:#2c443f;--brand:#4fb8a8;--on:#06201b;--ok:#5fc98a;--bad:#e8806f}}
+:root[data-theme="dark"]{--bg:#10201d;--card:#172a26;--ink:#e6efec;--mute:#9bb1ab;--line:#2c443f;--brand:#4fb8a8;--on:#06201b;--ok:#5fc98a;--bad:#e8806f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,button,input,select,th{font-family:"Trebuchet MS",Verdana,sans-serif}
+header{background:var(--brand);color:var(--on);padding:24px 16px}
+header h1{margin:0;font-size:1.7rem}header p{margin:4px 0 0;opacity:.9}
+main{max-width:1000px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.15rem}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+label{font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+input,select{padding:8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-size:.95rem}
+button{padding:8px 14px;border:0;border-radius:5px;background:var(--brand);color:var(--on);cursor:pointer;font-size:.9rem}
+button.alt{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+form button{align-self:end}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}.tools input{flex:1;min-width:180px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.92rem}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:600}
+.tag{font-weight:bold}.Returned{color:var(--ok)}.Taken{color:var(--bad)}
+td button{margin-right:4px;padding:5px 9px;font-size:.8rem}
+.empty{color:var(--mute);padding:12px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>SIMATS Library – Book Reservation</h1>
+  <p>Add books, search the catalogue, and track issue and return.</p>
+</header>
+<main>
+  <section>
+    <h2>Add a book</h2>
+    <form id="f">
+      <label>Title<input id="title" required></label>
+      <label>Author<input id="author" required></label>
+      <label>Publications<input id="pub" required></label>
+      <label>Year<input id="year" type="number" min="1800" max="2100" required></label>
+      <label>Edition<input id="edition" required></label>
+      <label>No. of copies<input id="copies" type="number" min="1" value="1" required></label>
+      <label>Rack no.<input id="rack" required></label>
+      <button type="submit">Add book</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Catalogue</h2>
+    <div class="tools">
+      <input id="q" placeholder="Search by title, author or rack" aria-label="Search books">
+      <select id="flt" aria-label="Filter by status">
+        <option value="">All statuses</option><option>Returned</option><option>Taken</option>
+      </select>
+    </div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Title</th><th>Author</th><th>Publications</th><th>Year</th><th>Edition</th><th>Copies available</th><th>Rack</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div id="none" class="empty" hidden>No books match. Add a book or change the search.</div>
+  </section>
+</main>
+
+<script>
+const KEY = "simats-library";
+let books = [];
+try { books = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) {}
+if (!books.length) books = [
+  {id:1,title:"Gray's Anatomy",author:"Henry Gray",pub:"Elsevier",year:2020,edition:"42nd",copies:5,avail:5,rack:"A-12"},
+  {id:2,title:"Engineering Mathematics",author:"B.S. Grewal",pub:"Khanna Publishers",year:2017,edition:"44th",copies:8,avail:7,rack:"B-03"},
+  {id:3,title:"Operating System Concepts",author:"Silberschatz",pub:"Wiley",year:2018,edition:"10th",copies:3,avail:0,rack:"C-21"}
+];
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(books)); } catch (e) {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function render() {
+  const q = $("q").value.toLowerCase(), st = $("flt").value;
+  const list = books.filter(b => {
+    const status = b.avail > 0 ? "Returned" : "Taken";
+    return (!st || st === status) && (b.title + b.author + b.rack).toLowerCase().includes(q);
+  });
+  $("rows").innerHTML = list.map(b => {
+    const status = b.avail > 0 ? "Returned" : "Taken";
+    return `<tr><td>${esc(b.title)}</td><td>${esc(b.author)}</td><td>${esc(b.pub)}</td><td>${b.year}</td><td>${esc(b.edition)}</td>
+    <td>${b.avail} / ${b.copies}</td><td>${esc(b.rack)}</td><td class="tag ${status}">${status}</td>
+    <td><button onclick="issue(${b.id})" ${b.avail < 1 ? "disabled" : ""}>Reserve</button>
+    <button onclick="ret(${b.id})" ${b.avail >= b.copies ? "disabled" : ""}>Return</button>
+    <button class="alt" onclick="del(${b.id})">Delete</button></td></tr>`;
+  }).join("");
+  $("none").hidden = list.length > 0;
+}
+function issue(id){ const b = books.find(x => x.id === id); if (b && b.avail > 0) b.avail--; save(); render(); }
+function ret(id){ const b = books.find(x => x.id === id); if (b && b.avail < b.copies) b.avail++; save(); render(); }
+function del(id){ books = books.filter(x => x.id !== id); save(); render(); }
+
+$("f").addEventListener("submit", e => {
+  e.preventDefault();
+  const n = +$("copies").value;
+  books.push({id:Date.now(),title:$("title").value,author:$("author").value,pub:$("pub").value,
+    year:+$("year").value,edition:$("edition").value,copies:n,avail:n,rack:$("rack").value});
+  save(); e.target.reset(); $("copies").value = 1; render();
+});
+$("q").addEventListener("input", render);
+$("flt").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>

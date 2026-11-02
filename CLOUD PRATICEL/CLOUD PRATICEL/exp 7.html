@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Students Attendance System</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f5f3ef;--card:#fff;--ink:#2b2420;--mute:#6f655d;--line:#e0d9d2;--brand:#a04a1f;--on:#fff;--ok:#1d7a46;--bad:#a63d2f;--warn:#9a6b00}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1814;--card:#262019;--ink:#eee8e2;--mute:#aaa096;--line:#3d342b;--brand:#f0a070;--on:#2a1308;--ok:#5fc98a;--bad:#e8806f;--warn:#e6b84d}}
+:root[data-theme="dark"]{--bg:#1c1814;--card:#262019;--ink:#eee8e2;--mute:#aaa096;--line:#3d342b;--brand:#f0a070;--on:#2a1308;--ok:#5fc98a;--bad:#e8806f;--warn:#e6b84d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+h1,h2,button,input,select,th{font-family:"Trebuchet MS",Verdana,sans-serif}
+header{background:var(--brand);color:var(--on);padding:24px 16px}
+header h1{margin:0;font-size:1.7rem}header p{margin:4px 0 0;opacity:.9}
+main{max-width:1000px;margin:0 auto;padding:16px}
+section{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.15rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px}
+label{font-size:.85rem;color:var(--mute);display:flex;flex-direction:column;gap:3px}
+input,select{padding:8px;border:1px solid var(--line);border-radius:5px;background:var(--bg);color:var(--ink);font-size:.95rem}
+button{padding:8px 14px;border:0;border-radius:5px;background:var(--brand);color:var(--on);cursor:pointer;font-size:.9rem}
+button.sm{padding:4px 8px;font-size:.8rem;margin-right:3px}
+button.alt{background:transparent;color:var(--bad);border:1px solid var(--bad)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}.tools input{flex:1;min-width:180px}
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:960px;font-size:.92rem}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:600}
+.Eligible{color:var(--ok);font-weight:bold}.Shortage{color:var(--bad);font-weight:bold}
+.Pending{color:var(--warn);font-weight:bold}.Approved{color:var(--ok)}.Rejected{color:var(--bad)}
+.hint{color:var(--mute);font-size:.85rem;margin:6px 0 0}
+.empty{color:var(--mute);padding:12px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Students Attendance System</h1>
+  <p>Record classes attended, handle OD requests, and see attendance percentage and grade.</p>
+</header>
+<main>
+  <section>
+    <h2>Add attendance record</h2>
+    <form id="f">
+      <div class="grid">
+        <label>Name of the student<input id="name" required></label>
+        <label>Course<input id="course" required></label>
+        <label>Total classes held<input id="total" type="number" min="1" required></label>
+        <label>Present (classes)<input id="present" type="number" min="0" required></label>
+        <label>OD request (days)<input id="od" type="number" min="0" value="0"></label>
+      </div>
+      <button type="submit">Save record</button>
+      <p class="hint">Absent = total classes − present − approved OD. OD days count as present only after approval.</p>
+    </form>
+  </section>
+
+  <section>
+    <h2>Attendance register</h2>
+    <div class="tools">
+      <input id="q" placeholder="Search by student or course" aria-label="Search records">
+      <select id="flt" aria-label="Filter by status">
+        <option value="">All students</option><option>Eligible</option><option>Shortage</option>
+      </select>
+    </div>
+    <div class="wrap">
+      <table>
+        <thead><tr><th>Student</th><th>Course</th><th>Total</th><th>Present</th><th>Absent</th><th>Approved OD</th><th>Attendance %</th><th>Grade</th><th>Status</th><th>OD request</th><th></th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div id="none" class="empty" hidden>No records match. Add a record or change the search.</div>
+    <p class="hint">Grades: O 95%+, A+ 90%+, A 85%+, B 75%+. Below 75% is a shortage.</p>
+  </section>
+</main>
+
+<script>
+const KEY = "attendance-system";
+let recs = [
+  {id:1,name:"Arun Kumar",course:"Data Structures",total:60,present:54,od:0,odStatus:"None",odApproved:0},
+  {id:2,name:"Divya S",course:"Data Structures",total:60,present:42,od:4,odStatus:"Pending",odApproved:0},
+  {id:3,name:"Karthik R",course:"Operating Systems",total:50,present:30,od:0,odStatus:"None",odApproved:0}
+];
+try { const d = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(d)) recs = d; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(recs)); } catch (e) {} };
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function stats(r) {
+  const credited = Math.min(r.total, r.present + r.odApproved);
+  const pct = r.total ? credited / r.total * 100 : 0;
+  const absent = Math.max(0, r.total - credited);
+  const grade = pct >= 95 ? "O" : pct >= 90 ? "A+" : pct >= 85 ? "A" : pct >= 75 ? "B" : "Shortage";
+  return {pct, absent, grade, status: pct >= 75 ? "Eligible" : "Shortage"};
+}
+function render() {
+  const q = $("q").value.toLowerCase(), f = $("flt").value;
+  const list = recs.filter(r => (!f || stats(r).status === f) && (r.name + r.course).toLowerCase().includes(q));
+  $("rows").innerHTML = list.map(r => {
+    const s = stats(r);
+    const od = r.odStatus === "Pending"
+      ? `<span class="Pending">Pending (${r.od} days)</span><br><button class="sm" onclick="decide(${r.id},true)">Approve</button><button class="sm alt" onclick="decide(${r.id},false)">Reject</button>`
+      : r.odStatus === "None" ? "None" : `<span class="${r.odStatus}">${r.odStatus} (${r.od} days)</span>`;
+    return `<tr><td>${esc(r.name)}</td><td>${esc(r.course)}</td><td>${r.total}</td><td>${r.present}</td><td>${s.absent}</td>
+    <td>${r.odApproved}</td><td>${s.pct.toFixed(1)}%</td><td>${s.grade}</td><td class="${s.status}">${s.status}</td>
+    <td>${od}</td><td><button class="sm alt" onclick="del(${r.id})">Delete</button></td></tr>`;
+  }).join("");
+  $("none").hidden = list.length > 0;
+}
+function decide(id, ok) {
+  const r = recs.find(x => x.id === id);
+  r.odStatus = ok ? "Approved" : "Rejected";
+  r.odApproved = ok ? r.od : 0;
+  save(); render();
+}
+function del(id) { recs = recs.filter(r => r.id !== id); save(); render(); }
+
+$("f").addEventListener("submit", e => {
+  e.preventDefault();
+  const total = +$("total").value, present = Math.min(+$("present").value, total), od = +$("od").value || 0;
+  recs.push({id: Date.now(), name: $("name").value, course: $("course").value, total, present, od,
+    odStatus: od > 0 ? "Pending" : "None", odApproved: 0});
+  save(); e.target.reset(); $("od").value = 0; render();
+});
+$("q").addEventListener("input", render);
+$("flt").addEventListener("change", render);
+render();
+</script>
+</body>
+</html>
